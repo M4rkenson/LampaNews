@@ -1,32 +1,30 @@
 package com.test.lampanews.fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.test.newsapp.R
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.test.lampanews.R
+import com.test.lampanews.adapters.RecyclerViewAdapter
+import com.test.lampanews.viewmodels.ActivityViewModel
+import kotlinx.android.synthetic.main.fragment_news.*
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val ARG_PARAM_FILTER_TAB_NAME = "ARG_PARAM_FILTER_TAB_NAME"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [NewsFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class NewsFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    private var tabFilterType: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+            if (it.containsKey(ARG_PARAM_FILTER_TAB_NAME)) {
+                tabFilterType = it.getString(ARG_PARAM_FILTER_TAB_NAME)!!
+            }
         }
     }
 
@@ -34,26 +32,37 @@ class NewsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_news, container, false)
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val recyclerView = recyclerView
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        val recyclerViewAdapter = RecyclerViewAdapter(requireContext())
+        val model = ViewModelProvider(requireActivity()).get(ActivityViewModel::class.java)
+        model.simpleLiveData.observe(viewLifecycleOwner, Observer {
+            if (it.data.isNullOrEmpty()) {
+                tv_empty_content.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
+            } else {
+                tv_empty_content.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
+            }
+            recyclerViewAdapter.setNewsListItems(it.data?.filter {it.type!!.contentEquals(tabFilterType)
+            }?.sortedBy { !it.top!!.contentEquals("1") })
+        })
+
+        recyclerView.adapter = recyclerViewAdapter
+        recyclerViewAdapter.notifyDataSetChanged()
+    }
+
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NewsFragment.
-         */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
+        fun newInstance(param: String) =
             NewsFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                    putString(ARG_PARAM_FILTER_TAB_NAME, param)
                 }
             }
     }

@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.item_news.view.tvTitle
 import kotlinx.android.synthetic.main.item_news_top.view.*
 
 
-class Adapter(private val context: Context) : RecyclerView.Adapter<Adapter.PagerVH>() {
+class RecyclerViewAdapter(private val context: Context) : RecyclerView.Adapter<RecyclerViewAdapter.PagerVH>() {
     private var newsList:List<News> = listOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagerVH {
